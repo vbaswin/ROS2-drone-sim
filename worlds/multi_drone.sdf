@@ -1,0 +1,1198 @@
+<?xml version="1.0"?>
+<sdf version="1.8">
+    <world name="default">
+
+        <!-- Physics -->
+        <physics name="4ms" type="ignored">
+            <max_step_size>0.004</max_step_size>
+            <real_time_factor>1.0</real_time_factor>
+        </physics>
+
+        <!-- Required World Plugins (Fortress naming) -->
+        <plugin filename="ignition-gazebo-physics-system"
+            name="ignition::gazebo::systems::Physics" />
+        <plugin filename="ignition-gazebo-scene-broadcaster-system"
+            name="ignition::gazebo::systems::SceneBroadcaster" />
+        <plugin filename="ignition-gazebo-user-commands-system"
+            name="ignition::gazebo::systems::UserCommands" />
+
+        <!-- Lighting -->
+        <light type="directional" name="sun">
+            <cast_shadows>true</cast_shadows>
+            <pose>0 0 10 0 0 0</pose>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+            <direction>-0.5 0.1 -0.9</direction>
+        </light>
+
+        <!-- Ground Plane -->
+        <model name="ground_plane">
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>100 100</size>
+                        </plane>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>100 100</size>
+                        </plane>
+                    </geometry>
+                    <material>
+                        <ambient>0.8 0.8 0.8 1</ambient>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+        <!-- ==================== DRONE 1 (RED) ==================== -->
+        <model name="drone1">
+            <pose>0 0 0.2 0 0 0</pose>
+
+            <link name="base_link">
+                <inertial>
+                    <mass>1.5</mass>
+                    <inertia>
+                        <ixx>0.0291</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>0.0291</iyy>
+                        <iyz>0</iyz>
+                        <izz>0.0552</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>0.47 0.47 0.11</size>
+                        </box>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>0.47 0.47 0.11</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>1 0 0 1</ambient>
+                        <diffuse>1 0 0 1</diffuse>
+                    </material>
+                </visual>
+            </link>
+
+            <!-- Rotor 0 (Front-Right, CCW) -->
+            <link name="rotor_0">
+                <pose>0.13 -0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>8.13545e-05</iyy>
+                        <iyz>0
+                        </iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_0_joint" type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_0</child>
+                <axis>
+                    <xyz>0 0 1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <!-- Rotor 1 (Rear-Left, CCW) -->
+            <link name="rotor_1">
+                <pose>-0.13 0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>8.13545e-05</iyy>
+                        <iyz>0
+                        </iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_1_joint" type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_1</child>
+                <axis>
+                    <xyz>0 0 1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <!-- Rotor 2 (Front-Left, CW) -->
+            <link name="rotor_2">
+                <pose>0.13 0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>8.13545e-05</iyy>
+                        <iyz>0
+                        </iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_2_joint" type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_2</child>
+                <axis>
+                    <xyz>0 0 1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <!-- Rotor 3 (Rear-Right, CW) -->
+            <link name="rotor_3">
+                <pose>-0.13 -0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>8.13545e-05</iyy>
+                        <iyz>0
+                        </iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_3_joint" type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_3</child>
+                <axis>
+                    <xyz>0 0 1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <!-- Motor Model Plugins (one per rotor) -->
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_0_joint</jointName>
+                <linkName>rotor_0</linkName>
+                <turningDirection>ccw</turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>0</motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+
+                <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_1_joint</jointName>
+                <linkName>rotor_1</linkName>
+                <turningDirection>ccw</turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>1</motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+
+                <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_2_joint</jointName>
+                <linkName>rotor_2</linkName>
+                <turningDirection>cw</turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>2</motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+
+                <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_3_joint</jointName>
+                <linkName>rotor_3</linkName>
+                <turningDirection>cw</turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>3</motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+
+                <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+
+            <!-- Velocity Controller -->
+            <plugin filename="ignition-gazebo-multicopter-control-system"
+                name="ignition::gazebo::systems::MulticopterVelocityControl">
+                <robotNamespace>drone1</robotNamespace>
+                <commandSubTopic>cmd_vel</commandSubTopic>
+                <enableSubTopic>enable</enableSubTopic>
+                <comLinkName>base_link</comLinkName>
+                <velocityGain>2.7 2.7 2.7</velocityGain>
+                <attitudeGain>2 3 0.15</attitudeGain>
+                <angularRateGain>0.4 0.52 0.18</angularRateGain>
+                <maximumLinearVelocity>5 5 5</maximumLinearVelocity>
+                <maximumAngularVelocity>3 3 3</maximumAngularVelocity>
+                <rotorConfiguration>
+                    <rotor>
+                        <jointName>rotor_0_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>rotor_1_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>rotor_2_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>-1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>rotor_3_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>-1</direction>
+                    </rotor>
+                </rotorConfiguration>
+            </plugin>
+
+            <!-- Odometry Publisher -->
+            <plugin filename="ignition-gazebo-odometry-publisher-system"
+                name="ignition::gazebo::systems::OdometryPublisher">
+                <odom_frame>world</odom_frame>
+                <robot_base_frame>drone1/base_link</robot_base_frame>
+                <odom_topic>/model/drone1/odometry</odom_topic>
+                <odom_publish_frequency>50</odom_publish_frequency>
+                <dimensions>3</dimensions>
+            </plugin>
+        </model>
+
+        <!-- ==================== DRONE 2 (GREEN) ==================== -->
+        <model name="drone2">
+            <pose>3 0 0.2 0 0 0</pose>
+
+            <link name="base_link">
+                <inertial>
+                    <mass>1.5</mass>
+                    <inertia>
+                        <ixx>0.0291</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>0.0291</iyy>
+                        <iyz>0</iyz>
+                        <izz>0.0552</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>0.47 0.47
+                                0.11</size>
+                        </box>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>0.47 0.47 0.11</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0 1 0 1</ambient>
+                        <diffuse>0 1 0 1</diffuse>
+                    </material>
+                </visual>
+            </link>
+
+            <link name="rotor_0">
+                <pose>0.13 -0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>
+                            8.13545e-05</iyy>
+                        <iyz>0</iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_0_joint"
+                type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_0</child>
+                <axis>
+                    <xyz>0 0
+                        1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <link name="rotor_1">
+                <pose>-0.13 0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>
+                            8.13545e-05</iyy>
+                        <iyz>0</iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_1_joint"
+                type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_1</child>
+                <axis>
+                    <xyz>0 0
+                        1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <link name="rotor_2">
+                <pose>0.13 0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>
+                            8.13545e-05</iyy>
+                        <iyz>0</iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_2_joint"
+                type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_2</child>
+                <axis>
+                    <xyz>0 0
+                        1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <link name="rotor_3">
+                <pose>-0.13 -0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>
+                            8.13545e-05</iyy>
+                        <iyz>0</iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_3_joint"
+                type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_3</child>
+                <axis>
+                    <xyz>0 0
+                        1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_0_joint</jointName>
+                <linkName>rotor_0</linkName>
+                <turningDirection>ccw
+                </turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>0
+                </motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06
+                </rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>10
+                </rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_1_joint</jointName>
+                <linkName>rotor_1</linkName>
+                <turningDirection>ccw
+                </turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>1
+                </motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06
+                </rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>10
+                </rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_2_joint</jointName>
+                <linkName>rotor_2</linkName>
+                <turningDirection>cw
+                </turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>2
+                </motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06
+                </rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>10
+                </rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_3_joint</jointName>
+                <linkName>rotor_3</linkName>
+                <turningDirection>cw
+                </turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>3
+                </motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06
+                </rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>10
+                </rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+
+            <plugin filename="ignition-gazebo-multicopter-control-system"
+                name="ignition::gazebo::systems::MulticopterVelocityControl">
+                <robotNamespace>drone2</robotNamespace>
+                <commandSubTopic>cmd_vel</commandSubTopic>
+                <enableSubTopic>enable
+                </enableSubTopic>
+                <comLinkName>base_link</comLinkName>
+                <velocityGain>2.7 2.7 2.7</velocityGain>
+                <attitudeGain>2 3
+                    0.15</attitudeGain>
+                <angularRateGain>0.4 0.52 0.18</angularRateGain>
+                <maximumLinearVelocity>5 5 5</maximumLinearVelocity>
+                <maximumAngularVelocity>3 3
+                    3</maximumAngularVelocity>
+                <rotorConfiguration>
+                    <rotor>
+                        <jointName>rotor_0_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>rotor_1_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>rotor_2_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>-1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>rotor_3_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>-1</direction>
+                    </rotor>
+                </rotorConfiguration>
+            </plugin>
+
+            <plugin filename="ignition-gazebo-odometry-publisher-system"
+                name="ignition::gazebo::systems::OdometryPublisher">
+                <odom_frame>world</odom_frame>
+                <robot_base_frame>drone2/base_link</robot_base_frame>
+                <odom_topic>/model/drone2/odometry</odom_topic>
+                <odom_publish_frequency>50
+                </odom_publish_frequency>
+                <dimensions>3</dimensions>
+            </plugin>
+        </model>
+
+        <!-- ==================== DRONE 3 (BLUE) ==================== -->
+        <model name="drone3">
+            <pose>0 3 0.2 0 0 0</pose>
+
+            <link name="base_link">
+                <inertial>
+                    <mass>1.5</mass>
+                    <inertia>
+                        <ixx>0.0291</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>0.0291</iyy>
+                        <iyz>0</iyz>
+                        <izz>0.0552</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>0.47 0.47
+                                0.11</size>
+                        </box>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>0.47 0.47 0.11</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0 0 1 1</ambient>
+                        <diffuse>0 0 1 1</diffuse>
+                    </material>
+                </visual>
+            </link>
+
+            <link name="rotor_0">
+                <pose>0.13 -0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>
+                            8.13545e-05</iyy>
+                        <iyz>0</iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_0_joint"
+                type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_0</child>
+                <axis>
+                    <xyz>0 0
+                        1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <link name="rotor_1">
+                <pose>-0.13 0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>
+                            8.13545e-05</iyy>
+                        <iyz>0</iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_1_joint"
+                type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_1</child>
+                <axis>
+                    <xyz>0 0
+                        1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <link name="rotor_2">
+                <pose>0.13 0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>
+                            8.13545e-05</iyy>
+                        <iyz>0</iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_2_joint"
+                type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_2</child>
+                <axis>
+                    <xyz>0 0
+                        1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <link name="rotor_3">
+                <pose>-0.13 -0.22 0.06 0 0 0</pose>
+                <inertial>
+                    <mass>0.005</mass>
+                    <inertia>
+                        <ixx>9.75e-07</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>
+                            8.13545e-05</iyy>
+                        <iyz>0</iyz>
+                        <izz>8.22545e-05</izz>
+                    </inertia>
+                </inertial>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01
+                            </length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.1</radius>
+                            <length>0.01</length>
+
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.2 0.2 0.2 1</ambient>
+                    </material>
+                </visual>
+            </link>
+            <joint name="rotor_3_joint"
+                type="revolute">
+                <parent>base_link</parent>
+                <child>rotor_3</child>
+                <axis>
+                    <xyz>0 0
+                        1</xyz>
+                    <limit>
+                        <lower>-1e16</lower>
+                        <upper>1e16</upper>
+                    </limit>
+                </axis>
+            </joint>
+
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_0_joint</jointName>
+                <linkName>rotor_0</linkName>
+                <turningDirection>ccw
+                </turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>0
+                </motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06
+                </rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>10
+                </rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_1_joint</jointName>
+                <linkName>rotor_1</linkName>
+                <turningDirection>ccw
+                </turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>1
+                </motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06
+                </rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>10
+                </rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_2_joint</jointName>
+                <linkName>rotor_2</linkName>
+                <turningDirection>cw
+                </turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>2
+                </motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06
+                </rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>10
+                </rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+            <plugin filename="ignition-gazebo-multicopter-motor-model-system"
+                name="ignition::gazebo::systems::MulticopterMotorModel">
+                <jointName>rotor_3_joint</jointName>
+                <linkName>rotor_3</linkName>
+                <turningDirection>cw
+                </turningDirection>
+                <timeConstantUp>0.0125</timeConstantUp>
+                <timeConstantDown>0.025
+                </timeConstantDown>
+                <maxRotVelocity>800.0</maxRotVelocity>
+                <motorConstant>8.54858e-06</motorConstant>
+                <momentConstant>0.016
+                </momentConstant>
+                <commandSubTopic>command/motor_speed</commandSubTopic>
+                <motorNumber>3
+                </motorNumber>
+                <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+                <rollingMomentCoefficient>1e-06
+                </rollingMomentCoefficient>
+                <rotorVelocitySlowdownSim>10
+                </rotorVelocitySlowdownSim>
+                <motorType>velocity</motorType>
+            </plugin>
+
+            <plugin filename="ignition-gazebo-multicopter-control-system"
+                name="ignition::gazebo::systems::MulticopterVelocityControl">
+                <robotNamespace>drone3</robotNamespace>
+                <commandSubTopic>cmd_vel</commandSubTopic>
+                <enableSubTopic>enable
+                </enableSubTopic>
+                <comLinkName>base_link</comLinkName>
+                <velocityGain>2.7 2.7 2.7</velocityGain>
+                <attitudeGain>2 3
+                    0.15</attitudeGain>
+                <angularRateGain>0.4 0.52 0.18</angularRateGain>
+                <maximumLinearVelocity>5 5 5</maximumLinearVelocity>
+                <maximumAngularVelocity>3 3
+                    3</maximumAngularVelocity>
+                <rotorConfiguration>
+                    <rotor>
+                        <jointName>rotor_0_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>rotor_1_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>rotor_2_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>-1</direction>
+                    </rotor>
+                    <rotor>
+                        <jointName>rotor_3_joint</jointName>
+                        <forceConstant>8.54858e-06
+                        </forceConstant>
+                        <momentConstant>0.016</momentConstant>
+                        <direction>-1</direction>
+                    </rotor>
+                </rotorConfiguration>
+            </plugin>
+
+            <plugin filename="ignition-gazebo-odometry-publisher-system"
+                name="ignition::gazebo::systems::OdometryPublisher">
+                <odom_frame>world</odom_frame>
+                <robot_base_frame>drone3/base_link</robot_base_frame>
+                <odom_topic>/model/drone3/odometry</odom_topic>
+                <odom_publish_frequency>50
+                </odom_publish_frequency>
+                <dimensions>3</dimensions>
+            </plugin>
+        </model>
+
+    </world>
+</sdf>                                                                                       
+     

@@ -10,14 +10,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # -----------------------------------------------------------------------------
 
 # ROS 2 Core Dependencies
-find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(ros_gz_interfaces REQUIRED) # For Simulation Control
 
 # Qt 6 Components (Source built paths found via env vars)
-find_package(Qt6 COMPONENTS Widgets Core Gui OpenGLWidgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Core Gui OpenGL REQUIRED)
 
 # VTK 9.5 Components
 find_package(VTK COMPONENTS
@@ -33,8 +32,14 @@ find_package(VTK COMPONENTS
   GUISupportQt
   IOImage     # For PNGWriter
   IOMovie     # For AVIWriter
+  IOOggTheora
   REQUIRED
 )
+
+# 2. Enable Unity Builds (Massive speedup for clean builds)
+# Compiles multiple .cpp files as one single file to reduce overhead.
+set(CMAKE_UNITY_BUILD ON)
+set(CMAKE_UNITY_BUILD_BATCH_SIZE 32) # Group 32 files at a time
 
 # -----------------------------------------------------------------------------
 # Build Target
@@ -48,6 +53,12 @@ add_executable(drone_sim
   src/RosWorker.h
   src/RosWorker.cpp
   src/DroneActor.h
+
+)
+
+# custom teleop
+add_executable(drone_teleop
+  src/DroneKeyboardTeleop.cpp
 )
 
 # Include Directories
@@ -61,20 +72,18 @@ target_include_directories(drone_sim PUBLIC
 # -----------------------------------------------------------------------------
 
 target_link_libraries(drone_sim
-  Qt6::Widgets
-  Qt6::OpenGLWidgets
-  VTK::CommonCore
-  VTK::GUISupportQt
-  VTK::RenderingOpenGL2
-  VTK::IOImage
-  VTK::IOMovie
-  rclcpp::rclcpp
-  nav_msgs::nav_msgs__rosidl_generator_c
-  nav_msgs::nav_msgs__rosidl_typesupport_fastrtps_c
-  geometry_msgs::geometry_msgs__rosidl_generator_c
-  geometry_msgs::geometry_msgs__rosidl_typesupport_fastrtps_c
-  ros_gz_interfaces::ros_gz_interfaces__rosidl_generator_c
-  ros_gz_interfaces::ros_gz_interfaces__rosidl_typesupport_fastrtps_c
+Qt5::Widgets
+Qt5::OpenGL
+${VTK_LIBRARIES}
+rclcpp::rclcpp
+${nav_msgs_TARGETS}
+${geometry_msgs_TARGETS}
+${ros_gz_interfaces_TARGETS}
+)
+
+target_link_libraries(drone_teleop
+rclcpp::rclcpp
+${geometry_msgs_TARGETS}
 )
 
 # Qt Meta-Object Compiler configuration
@@ -84,6 +93,16 @@ set_target_properties(drone_sim PROPERTIES
   AUTORCC ON
 )
 
+# 3. Precompiled Headers (PCH)
+# Compile heavyweight headers (like Qt) ONCE and reuse them everywhere.
+target_precompile_headers(drone_sim PRIVATE
+    <QApplication>
+    <QWidget>
+    <QString>
+    <vector>
+    <memory>
+)
+
 # VTK 9 Module Initialization (Critical for static/hybrid builds)
 vtk_module_autoinit(
   TARGETS drone_sim
@@ -91,7 +110,6 @@ vtk_module_autoinit(
 )
 
 # -----------------------------------------------------------------------------
-# Install Rules
+#2j Install Rules
 # -----------------------------------------------------------------------------
-install(TARGETS drone_sim DESTINATION lib/${PROJECT_NAME})
-ament_package()
+install(TARGETS drone_sim drone_teleop DESTINATION lib/${PROJECT_NAME})

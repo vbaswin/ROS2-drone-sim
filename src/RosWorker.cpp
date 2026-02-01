@@ -1,11 +1,16 @@
 #include "RosWorker.h"
+#include <chrono>
+#include <memory>
+#include <ros_gz_interfaces/srv/detail/control_world__struct.hpp>
+#include <thread>
 
-RosWorker::RosWorker(QObject* parent) : QObject(parent), running_(false) {}
+RosWorker::RosWorker(QObject *parent) : QObject(parent), running_(false) {}
 
 RosWorker::~RosWorker() { stop(); }
 
 void RosWorker::start() {
-    if (running_) return;
+    if (running_)
+        return;
     running_ = true;
 
     // Create the ROS Node
@@ -14,11 +19,11 @@ void RosWorker::start() {
     // "Setup a few drones" - We subscribe to a fixed list for this learning project.
     // In a production app, we would use topic discovery.
     std::vector<std::string> droneNames = {"drone1", "drone2", "drone3"};
-    
+
     // Quality of Service: Best Effort is preferred for live visualization telemetry
     auto qos = rclcpp::SensorDataQoS();
 
-    for (const auto& name : droneNames) {
+    for (const auto &name : droneNames) {
         std::string topic = "/model/" + name + "/odometry";
         auto sub = node_->create_subscription<nav_msgs::msg::Odometry>(
             topic, qos,
@@ -46,20 +51,36 @@ void RosWorker::start() {
 
 void RosWorker::stop() {
     running_ = false;
-    if (node_) rclcpp::shutdown();
-    if (spinThread_.joinable()) spinThread_.join();
+    if (spinThread_.joinable())
+        spinThread_.join();
 }
 
 void RosWorker::spinLoop() {
-    rclcpp::spin(node_);
+    while (running_ && rclcpp::ok()) {
+        rclcpp::spin_some(node_);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 }
 
 void RosWorker::setSimulationPaused(bool paused) {
-    if (!controlClient_->wait_for_service(std::chrono::seconds(1))) return;
+    // if (!controlClient_->wait_for_service(std::chrono::seconds(1)))
+    // if (!controlClient_->service_is_ready()) {
+    //     RCLCPP_WARN(node_->get_logger(), "Control service not available");
+    //     return;
+    //
+    //     auto req = std::make_shared<ros_gz_interfaces::srv::ControlWorld::Request>();
+    //     req->world_control.pause = paused;
+    //
+    //     // Asynchronous call to avoid blocking the GUI thread
+    //     controlClient_->async_send_request(req);
+    // }
 
-    auto req = std::make_shared<ros_gz_interfaces::srv::ControlWorld::Request>();
-    req->world_control.pause = paused;
-    
-    // Asynchronous call to avoid blocking the GUI thread
-    controlClient_->async_send_request(req);
+    // moveing to background thread
+    std::thread([this, paused]() {
+        if (!controlClient_->wait_for_service(std::chrono::seconds(1)))
+            return;
+        auto req = std::make_shared<ros_gz_interfaces::srv::ControlWorld::Request>();
+        req->world_control.pause = paused;
+        controlClient_->async_send_request(req);
+    }).detach();
 }

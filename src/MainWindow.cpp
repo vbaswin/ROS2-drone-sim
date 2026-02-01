@@ -1,31 +1,34 @@
 #include "MainWindow.h"
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QTimer>
+#include <QVBoxLayout>
+#include <qglobal.h>
+#include <qnamespace.h>
 #include <vtkCamera.h>
+#include <vtkOggTheoraWriter.h>
 
-MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     // 1. UI Layout Construction
-    QWidget* central = new QWidget;
+    QWidget *central = new QWidget;
     setCentralWidget(central);
-    QVBoxLayout* mainLayout = new QVBoxLayout(central);
+    QVBoxLayout *mainLayout = new QVBoxLayout(central);
 
     // 2. VTK Integration
     vtkWidget_ = new QVTKOpenGLNativeWidget();
     auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
     vtkWidget_->setRenderWindow(renWin);
-    
+
     renderer_ = vtkSmartPointer<vtkRenderer>::New();
     renderer_->SetBackground(0.15, 0.15, 0.15); // Dark grey background
     renWin->AddRenderer(renderer_);
-    
+
     mainLayout->addWidget(vtkWidget_);
 
     // 3. Control Panel
-    QHBoxLayout* controls = new QHBoxLayout;
-    QPushButton* btnSim = new QPushButton("Start/Stop Sim");
-    QPushButton* btnRec = new QPushButton("Record Video");
+    QHBoxLayout *controls = new QHBoxLayout;
+    QPushButton *btnSim = new QPushButton("Start/Stop Sim");
+    QPushButton *btnRec = new QPushButton("Record Video");
     controls->addWidget(btnSim);
     controls->addWidget(btnRec);
     mainLayout->addLayout(controls);
@@ -36,7 +39,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 
     // 5. ROS Worker Setup
     worker_ = new RosWorker(this);
-    connect(worker_, &RosWorker::droneStateReceived, this, &MainWindow::onDroneUpdate);
+    connect(worker_, &RosWorker::droneStateReceived, this, &MainWindow::onDroneUpdate, Qt::QueuedConnection);
     worker_->start();
 
     // 6. Camera Defaults
@@ -46,9 +49,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 
     // 7. Video Recording Setup
     windowToImage_ = vtkSmartPointer<vtkWindowToImageFilter>::New();
-    videoWriter_ = vtkSmartPointer<vtkAVIWriter>::New();
+    videoWriter_ = vtkSmartPointer<vtkOggTheoraWriter>::New();
     videoWriter_->SetRate(30); // 30 FPS
-    
+    videoWriter_->SetQuality(2);
+
     recordTimer_ = new QTimer(this);
     connect(recordTimer_, &QTimer::timeout, this, &MainWindow::recordFrame);
 }
@@ -66,13 +70,13 @@ void MainWindow::onDroneUpdate(QString id, double x, double y, double z, double 
         double r = (qHash(id) % 255) / 255.0;
         double g = (qHash(id + "g") % 255) / 255.0;
         double b = (qHash(id + "b") % 255) / 255.0;
-        
+
         auto drone = std::make_shared<DroneActor>(r, g, b);
         renderer_->AddActor(drone->getBody());
         renderer_->AddActor(drone->getTrail());
         renderer_->AddActor(drone->getPrediction());
         drones_[id] = drone;
-        
+
         // Reset camera to focus on first drone
         if (drones_.size() == 1) {
             renderer_->ResetCamera();
@@ -84,19 +88,24 @@ void MainWindow::onDroneUpdate(QString id, double x, double y, double z, double 
 }
 
 void MainWindow::onToggleSim() {
-    simPaused_ =!simPaused_;
+    simPaused_ = !simPaused_;
     worker_->setSimulationPaused(simPaused_);
 }
 
 void MainWindow::onToggleRecord() {
-    isRecording_ =!isRecording_;
+    isRecording_ = !isRecording_;
     if (isRecording_) {
         // Start Recording
-        videoWriter_->SetFileName("flight_demo.avi");
+        videoWriter_->SetFileName("flight_demo.ogv");
         windowToImage_->SetInput(vtkWidget_->renderWindow());
         windowToImage_->SetInputBufferTypeToRGB();
         windowToImage_->ReadFrontBufferOff(); // Read from back buffer for speed
         videoWriter_->Start();
+        // if (!result) {
+        //     qWarning() << "Failed to start video recording";
+        //     isRecording_ = false;
+        //     return;
+        // }
         recordTimer_->start(33); // ~30ms interval
     } else {
         // Stop Recording

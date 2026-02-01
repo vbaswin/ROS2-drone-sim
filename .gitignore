@@ -6,10 +6,16 @@
 
 # 3. Whitelist your config folders (Git will enter these and track everything inside)
 !/src/
+!/worlds/
+!/config/
+
 
 
 # files 
 !/CMakeLists.txt
-!/.envrc
+!/justfile
+!/CMakePresets.json
 !/README.md
+!/CLAUDE.md
+!/package.xml
 

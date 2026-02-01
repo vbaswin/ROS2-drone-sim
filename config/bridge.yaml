@@ -1,0 +1,35 @@
+- ros_topic_name: "/model/drone1/odometry"
+  gz_topic_name: "/model/drone1/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "ignition.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/model/drone2/odometry"
+  gz_topic_name: "/model/drone2/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "ignition.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/model/drone3/odometry"
+  gz_topic_name: "/model/drone3/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "ignition.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/drone1/cmd_vel"
+  gz_topic_name: "/drone1/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "ignition.msgs.Twist"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/drone2/cmd_vel"
+  gz_topic_name: "/drone2/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "ignition.msgs.Twist"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/drone3/cmd_vel"
+  gz_topic_name: "/drone3/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "ignition.msgs.Twist"
+  direction: ROS_TO_GZ
