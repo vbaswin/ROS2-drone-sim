@@ -52,6 +52,9 @@ bridge:
     @echo "{{BRIDGE}} Starting ROS-Gazebo bridge..."
     @ros2 run ros_gz_bridge parameter_bridge --ros-args -p config_file:=$(pwd)/config/bridge.yaml
 
+chumma2:
+    @echo "hi chumma2"
+
 enable-drones:
     @echo "{{DRONE}} Enabling drone controllers..."
     @ign topic -t /drone1/enable -m ignition.msgs.Boolean -p 'data: true'

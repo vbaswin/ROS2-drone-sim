@@ -35,134 +35,33 @@ public:
         struct termios raw = original_;
         raw.c_lflag &= ~(ICANON | ECHO); // Disable canonical mode and echo
         raw.c_cc[VMIN] = 0;              // Non-blocking
-        raw.c_cc[VTIME] = 1;             // 100ms timeout
+        raw.c_cc[VTIME] = 0;             // No timeout
         tcsetattr(STDIN_FILENO, TCSANOW, &raw);
     }
     ~TerminalRawMode() {
         tcsetattr(STDIN_FILENO, TCSANOW, &original_);
     }
+
+    TerminalRawMode(const TerminalRawMode &) = delete;
+    TerminalRawMode &operator=(const TerminalRawMode &) = delete;
 };
+
 class DroneKeyboardTeleop : public rclcpp::Node {
-public:
-    DroneKeyboardTeleop() : Node("drone_keyboard_teleop"), current_drone_(1) {
-        // Create publishers for all drones
-        for (int i = 1; i <= 3; ++i) {
-            std::string topic = "/drone" + std::to_string(i) + "/cmd_vel";
-            publishers_[i] = create_publisher<geometry_msgs::msg::Twist>(topic, 10);
-        }
-
-        printHelp();
-    }
-
-    void run() {
-        TerminalRawMode raw_mode; // RAII: restores terminal on exit
-
-        rclcpp::Rate rate(20); // 20 Hz control loop
-        geometry_msgs::msg::Twist twist;
-
-        while (rclcpp::ok()) {
-            char c = 0;
-            if (read(STDIN_FILENO, &c, 1) > 0) {
-                // Reset twist
-                twist = geometry_msgs::msg::Twist();
-
-                bool valid_key = true;
-                switch (c) {
-                // === MOVEMENT (vim-like) ===
-                case 'k':
-                    twist.linear.x = linear_speed_;
-                    break; // Forward
-                case 'j':
-                    twist.linear.x = -linear_speed_;
-                    break; // Backward
-                case 'h':
-                    twist.linear.y = linear_speed_;
-                    break; // Strafe Left
-                case 'l':
-                    twist.linear.y = -linear_speed_;
-                    break; // Strafe Right
-
-                // === ALTITUDE ===
-                case 'u':
-                    twist.linear.z = linear_speed_;
-                    break; // Up
-                case 'o':
-                    twist.linear.z = -linear_speed_;
-                    break; // Down
-
-                // === ROTATION ===
-                case 'a':
-                    twist.angular.z = angular_speed_;
-                    break; // Yaw Left
-                case 'd':
-                    twist.angular.z = -angular_speed_;
-                    break; // Yaw Right
-
-                // === DRONE SELECTION ===
-                case '1':
-                    selectDrone(1);
-                    valid_key = false;
-                    break;
-                case '2':
-                    selectDrone(2);
-                    valid_key = false;
-                    break;
-                case '3':
-                    selectDrone(3);
-                    valid_key = false;
-                    break;
-
-                // === SPEED CONTROL ===
-                case '+':
-                case '=':
-                    linear_speed_ *= 1.1;
-                    angular_speed_ *= 1.1;
-                    printSpeed();
-                    valid_key = false;
-                    break;
-                case '-':
-                case '_':
-                    linear_speed_ *= 0.9;
-                    angular_speed_ *= 0.9;
-                    printSpeed();
-                    valid_key = false;
-                    break;
-
-                // === QUIT ===
-                case 'q':
-                case 3: // Ctrl+C
-                    std::cout << "\nExiting...\n";
-                    return;
-
-                // === STOP (spacebar) ===
-                case ' ':
-                    twist = geometry_msgs::msg::Twist(); // All zeros = stop
-                    break;
-
-                default:
-                    valid_key = false;
-                    break;
-                }
-
-                if (valid_key) {
-                    publishers_[current_drone_]->publish(twist);
-                }
-            } else {
-                // No key pressed - send stop command to prevent drift
-                twist = geometry_msgs::msg::Twist();
-                publishers_[current_drone_]->publish(twist);
-            }
-
-            rclcpp::spin_some(this->get_node_base_interface());
-            rate.sleep();
-        }
-    }
-
 private:
+    std::map<int, rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr> publishers_;
+    int current_drone_;
+    double linear_speed_;
+    double angular_speed_;
+
+    // For HOLD behavior
+    geometry_msgs::msg::Twist current_twist_;
+    std::chrono::steady_clock::time_point last_key_time_;
+    static constexpr int KEY_TIMEOUT_MS = 150; // Stop after 150ms of no input
+
     void selectDrone(int drone_id) {
         current_drone_ = drone_id;
-        std::cout << "\r\033[K"; // Clear line
-        std::cout << "\033[1;32m>>> Selected: DRONE " << drone_id << " <<<\033[0m" << std::flush;
+        std::cout << "\r\033[K";
+        std::cout << "\033[1;32m>>> Selected: DRONE " << drone_id << " <<<\033[0m";
         std::cout << " (";
         switch (drone_id) {
         case 1:
@@ -175,25 +74,27 @@ private:
             std::cout << "\033[1;34mBLUE\033[0m";
             break;
         }
-        std::cout << ")\n";
+        std::cout << ")\n"
+                  << std::flush;
     }
 
     void printSpeed() {
         std::cout << "\rSpeed: linear=" << linear_speed_
-                  << " angular=" << angular_speed_ << "   \n";
+                  << " angular=" << angular_speed_ << "   \n"
+                  << std::flush;
     }
 
     void printHelp() {
-        std::cout << R"(                                                                     
+        std::cout << R"(
   ╔══════════════════════════════════════════════════════════════╗
-  ║           DRONE KEYBOARD TELEOP (Vim-style)                  ║
+  ║        DRONE KEYBOARD TELEOP (Vim-style + HOLD)              ║
   ╠══════════════════════════════════════════════════════════════╣
-  ║  MOVEMENT          ALTITUDE         ROTATION                 ║
-  ║  ─────────         ────────         ────────                 ║
+  ║  MOVEMENT (HOLD)   ALTITUDE (HOLD)  ROTATION (HOLD)          ║
+  ║  ──────────────    ──────────────   ─────────────            ║
   ║      k               u (up)          a ↺  ↻ d                ║
   ║    h   l                                                     ║
   ║      j               o (down)                                ║
-  ║  (←↓↑→)                                                      ║
+  ║                                                              ║
   ╠══════════════════════════════════════════════════════════════╣
   ║  DRONE SELECT      SPEED            OTHER                    ║
   ║  ────────────      ─────            ─────                    ║
@@ -201,14 +102,141 @@ private:
   ║  2 = Drone2 (GRN)  - = slower       q = quit                 ║
   ║  3 = Drone3 (BLU)                                            ║
   ╚══════════════════════════════════════════════════════════════╝
+          >>> HOLD keys for continuous movement <<<
   )";
-        selectDrone(1); // Default to drone 1
+        selectDrone(1);
     }
 
-    std::map<int, rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr> publishers_;
-    int current_drone_;
-    double linear_speed_ = 1.0;
-    double angular_speed_ = 1.0;
+public:
+    DroneKeyboardTeleop()
+        : Node("drone_keyboard_teleop"), current_drone_(1), linear_speed_(1.5), angular_speed_(1.5), last_key_time_(std::chrono::steady_clock::now()) {
+        for (int i = 1; i <= 3; ++i) {
+            std::string topic = "/drone" + std::to_string(i) + "/cmd_vel";
+            publishers_[i] = create_publisher<geometry_msgs::msg::Twist>(topic, 10);
+        }
+        printHelp();
+    }
+
+    void run() {
+        TerminalRawMode raw_mode;
+
+        rclcpp::Rate rate(50); // 50 Hz for responsive control
+
+        while (rclcpp::ok()) {
+            char c = 0;
+            bool key_pressed = (read(STDIN_FILENO, &c, 1) > 0);
+
+            if (key_pressed) {
+                last_key_time_ = std::chrono::steady_clock::now();
+
+                // Process the key
+                bool movement_key = true;
+                geometry_msgs::msg::Twist new_twist;
+
+                switch (c) {
+                // === MOVEMENT (vim-like) ===
+                case 'k':
+                    new_twist.linear.x = linear_speed_;
+                    break;
+                case 'j':
+                    new_twist.linear.x = -linear_speed_;
+                    break;
+                case 'h':
+                    new_twist.linear.y = linear_speed_;
+                    break;
+                case 'l':
+                    new_twist.linear.y = -linear_speed_;
+                    break;
+
+                // === ALTITUDE ===
+                case 'u':
+                    new_twist.linear.z = linear_speed_;
+                    break;
+                case 'o':
+                    new_twist.linear.z = -linear_speed_;
+                    break;
+
+                // === ROTATION ===
+                case 'a':
+                    new_twist.angular.z = angular_speed_;
+                    break;
+                case 'd':
+                    new_twist.angular.z = -angular_speed_;
+                    break;
+
+                // === DRONE SELECTION ===
+                case '1':
+                    selectDrone(1);
+                    movement_key = false;
+                    break;
+                case '2':
+                    selectDrone(2);
+                    movement_key = false;
+                    break;
+                case '3':
+                    selectDrone(3);
+                    movement_key = false;
+                    break;
+
+                // === SPEED CONTROL ===
+                case '+':
+                case '=':
+                    linear_speed_ = std::min(linear_speed_ * 1.2, 5.0);
+                    angular_speed_ = std::min(angular_speed_ * 1.2, 5.0);
+                    printSpeed();
+                    movement_key = false;
+                    break;
+                case '-':
+                case '_':
+                    linear_speed_ = std::max(linear_speed_ * 0.8, 0.1);
+                    angular_speed_ = std::max(angular_speed_ * 0.8, 0.1);
+                    printSpeed();
+                    movement_key = false;
+                    break;
+
+                // === QUIT ===
+                case 'q':
+                case 3:
+                    // Send stop before exiting
+                    current_twist_ = geometry_msgs::msg::Twist();
+                    publishers_[current_drone_]->publish(current_twist_);
+                    std::cout << "\nExiting...\n";
+                    return;
+
+                // === IMMEDIATE STOP ===
+                case ' ':
+                    new_twist = geometry_msgs::msg::Twist();
+                    current_twist_ = new_twist;
+                    break;
+
+                default:
+                    movement_key = false;
+                    break;
+                }
+
+                if (movement_key) {
+                    current_twist_ = new_twist;
+                }
+            }
+
+            // Check for key timeout (HOLD behavior)
+            auto now = std::chrono::steady_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now -
+                                                                                 last_key_time_)
+                               .count();
+
+            if (elapsed > KEY_TIMEOUT_MS) {
+                // Key released (timeout) - stop
+                current_twist_ = geometry_msgs::msg::Twist();
+            }
+
+            // Always publish current twist (enables smooth HOLD behavior)
+            publishers_[current_drone_]->publish(current_twist_);
+
+            rclcpp::spin_some(this->get_node_base_interface());
+            rate.sleep();
+        }
+    }
 };
 
 int main(int argc, char **argv) {
